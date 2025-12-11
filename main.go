@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/baletor/gator/internal/config"
 )
@@ -13,15 +13,30 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = cfg.SetUser("Baletor")
-	if err != nil {
+	s := &state{
+		cfg: &cfg,
+	}
+
+	cmds := commands{
+		registered: make(map[string]func(*state, command) error),
+	}
+
+	cmds.register("login", handlerLogin)
+
+	if len(os.Args) < 2 {
+		log.Fatal("not enough arguments")
+	}
+
+	cmdName := os.Args[1]
+	cmdArgs := os.Args[2:]
+
+	cmd := command{
+		name: cmdName,
+		args: cmdArgs,
+	}
+
+	if err := cmds.run(s, cmd); err != nil {
 		log.Fatal(err)
 	}
 
-	cfg2, err := config.Read()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(cfg2)
 }
